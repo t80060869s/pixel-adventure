@@ -106,24 +106,81 @@ function drawTile(x, y, type) {
 
     // МОНЕТА
     if (type === 1) {
-        ctx.fillStyle = "#f1c232";
+        // Основной круг
         ctx.beginPath();
-        ctx.arc(screenX + 16, screenY + 16, 6, 0, Math.PI * 2);
+        // Увеличили радиус с 6 до 8
+        ctx.arc(screenX + 16, screenY + 16, 8, 0, Math.PI * 2);
+
+        // Заливка (Золотой)
+        ctx.fillStyle = "#ffce00";
+        ctx.fill();
+
+        // Обводка (Темно-оранжевый/коричневатый, как на иконке сверху)
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#c28800";
+        ctx.stroke();
+
+        // (Опционально) Можно добавить маленький блик внутри для объема
+        ctx.fillStyle = "#ffefa0";
+        ctx.beginPath();
+        ctx.arc(screenX + 13, screenY + 13, 2, 0, Math.PI * 2);
         ctx.fill();
     }
 
     // АЛМАЗ
     if (type === 3) {
-        ctx.fillStyle = "#76c7ff";
+        const topY = screenY + 6;
+        const midY = screenY + 12;   // Чуть выше поясок
+        const botY = screenY + 24;   // Низ
+
+        const cX = screenX + 16;
+        const wTop = 5;
+        const wMid = 10;
+
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 2; // Чуть жирнее обводка, чтобы было видно на траве
+        ctx.strokeStyle = "#22668d"; // Цвет контура (не черный, а темно-синий)
+
+        // 1. Нижняя часть (Основной цвет - теперь светло-синий, а не темный)
+        ctx.fillStyle = "#29b6f6"; // Светлый насыщенный голубой
         ctx.beginPath();
-        ctx.moveTo(screenX + 16, screenY + 6);
-        ctx.lineTo(screenX + 26, screenY + 16);
-        ctx.lineTo(screenX + 16, screenY + 26);
-        ctx.lineTo(screenX + 6, screenY + 16);
+        ctx.moveTo(cX - wMid, midY);
+        ctx.lineTo(cX + wMid, midY);
+        ctx.lineTo(cX, botY);
         ctx.closePath();
         ctx.fill();
-    }
+        ctx.stroke();
 
+        // 2. Верхняя левая грань
+        ctx.fillStyle = "#81d4fa"; // Очень светлый голубой
+        ctx.beginPath();
+        ctx.moveTo(cX - wMid, midY);
+        ctx.lineTo(cX - wTop, topY);
+        ctx.lineTo(cX, midY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 3. Верхняя правая грань
+        ctx.fillStyle = "#4fc3f7"; // Чуть темнее левой для объема
+        ctx.beginPath();
+        ctx.moveTo(cX + wMid, midY);
+        ctx.lineTo(cX + wTop, topY);
+        ctx.lineTo(cX, midY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 4. Верхняя площадка (Блик)
+        ctx.fillStyle = "#e1f5fe"; // Почти белый
+        ctx.beginPath();
+        ctx.moveTo(cX - wTop, topY);
+        ctx.lineTo(cX + wTop, topY);
+        ctx.lineTo(cX, midY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
 }
 
 function drawPlayer() {
