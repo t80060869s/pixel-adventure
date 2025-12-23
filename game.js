@@ -39,13 +39,15 @@ let camera = {
 // 1 — монета
 // 2 — стена
 // 3 — алмаз
+// 4 - дерево
 function generateMap() {
     map = Array.from({ length: MAP_HEIGHT }, (_, y) =>
         Array.from({ length: MAP_WIDTH }, (_, x) => {
             if (x === 0 || y === 0 || x === MAP_WIDTH - 1 || y === MAP_HEIGHT - 1) {
                 return 2;
             }
-            if (Math.random() < 0.10) return 2;
+            if (Math.random() < 0.07) return 2;
+            if (Math.random() < 0.03) return 4;
             if (Math.random() < 0.05) return 3;
             if (Math.random() < 0.08) return 1;
             return 0;
@@ -67,23 +69,52 @@ function drawTile(x, y, type) {
     const screenX = (x - camera.x) * TILE_SIZE;
     const screenY = (y - camera.y) * TILE_SIZE;
 
-    if (screenX < 0 || screenY < 0 ||
-        screenX >= canvas.width || screenY >= canvas.height) {
-        return;
+    if (
+        screenX < -TILE_SIZE || screenY < -TILE_SIZE ||
+        screenX > canvas.width || screenY > canvas.height
+    ) return;
+
+    // ТРАВА
+    if (type !== 2) {
+        const base = Math.random() > 0.5 ? "#6aa84f" : "#6fae57";
+        ctx.fillStyle = base;
+        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+
+        // мелкие точки — текстура
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        for (let i = 0; i < 3; i++) {
+            ctx.fillRect(
+                screenX + Math.random() * TILE_SIZE,
+                screenY + Math.random() * TILE_SIZE,
+                2,
+                2
+            );
+        }
     }
 
-    ctx.fillStyle = type === 2 ? "#555" : "#2f5d3a";
-    ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+    // СТЕНА (земля + камень)
+    if (type === 2) {
+        ctx.fillStyle = "#8b6f47";
+        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
 
+        ctx.fillStyle = "#6f5737";
+        ctx.fillRect(screenX, screenY + TILE_SIZE - 12, TILE_SIZE, 12);
+
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.fillRect(screenX + 4, screenY + 4, 8, 8);
+    }
+
+    // МОНЕТА
     if (type === 1) {
-        ctx.fillStyle = "#f5d000";
+        ctx.fillStyle = "#f1c232";
         ctx.beginPath();
         ctx.arc(screenX + 16, screenY + 16, 6, 0, Math.PI * 2);
         ctx.fill();
     }
 
+    // АЛМАЗ
     if (type === 3) {
-        ctx.fillStyle = "#5fd7ff";
+        ctx.fillStyle = "#76c7ff";
         ctx.beginPath();
         ctx.moveTo(screenX + 16, screenY + 6);
         ctx.lineTo(screenX + 26, screenY + 16);
@@ -92,26 +123,153 @@ function drawTile(x, y, type) {
         ctx.closePath();
         ctx.fill();
     }
+
 }
 
 function drawPlayer() {
     const px = (player.x - camera.x) * TILE_SIZE;
-    const py = (player.y - camera.y) * TILE_SIZE;
+    const py = (player.y - camera.y) * TILE_SIZE - 6;
 
-    const legOffset = player.moving ? (player.stepFrame ? 1 : -1) : 0;
+    const step = player.moving ? (player.stepFrame ? 2 : -2) : 0;
 
+    // тень
+    ctx.fillStyle = "rgba(0,0,0,0.25)";
+    ctx.beginPath();
+    ctx.ellipse(px + 16, py + 40, 12, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // волосы
+    ctx.fillStyle = "#6f4e37";
+    ctx.fillRect(px + 8, py + 2, 16, 6);
+
+    // голова
     ctx.fillStyle = "#f1c27d";
-    ctx.fillRect(px + 10, py + 4, 12, 12);
+    ctx.fillRect(px + 8, py + 6, 16, 14);
 
-    ctx.fillStyle = "#3a6ea5";
-    ctx.fillRect(px + 12, py + 16, 8, 10);
+    // глаза
+    ctx.fillStyle = "#000";
+    ctx.fillRect(px + 12, py + 12, 2, 2);
+    ctx.fillRect(px + 18, py + 12, 2, 2);
 
-    ctx.fillRect(px + 6, py + 16, 6, 6);
-    ctx.fillRect(px + 20, py + 16, 6, 6);
+    // рот
+    ctx.fillRect(px + 15, py + 16, 2, 1);
 
-    ctx.fillStyle = "#2b2b2b";
-    ctx.fillRect(px + 12, py + 26 + legOffset, 4, 6);
-    ctx.fillRect(px + 16, py + 26 - legOffset, 4, 6);
+    // рубашка
+    ctx.fillStyle = "#e06666";
+    ctx.fillRect(px + 8, py + 20, 16, 12);
+
+    // ремень
+    ctx.fillStyle = "#783f04";
+    ctx.fillRect(px + 8, py + 28, 16, 2);
+
+    // руки
+    ctx.fillStyle = "#f1c27d";
+    ctx.fillRect(px + 4, py + 22, 4, 8);
+    ctx.fillRect(px + 24, py + 22, 4, 8);
+
+    // штаны
+    ctx.fillStyle = "#1f66a3ff";
+    ctx.fillRect(px + 10, py + 30, 4, 10 + step);
+    ctx.fillRect(px + 18, py + 30, 4, 10 - step);
+}
+
+function drawTreeTrunk(x, y) {
+    const screenX = (x - camera.x) * TILE_SIZE;
+    const screenY = (y - camera.y) * TILE_SIZE;
+
+    // основной ствол — длиннее
+    ctx.fillStyle = "#7a4a21";
+    ctx.fillRect(
+        screenX + 10,
+        screenY + 6,   // выше начало
+        12,
+        32             // длиннее
+    );
+
+    // тень
+    ctx.fillStyle = "#5e3616";
+    ctx.fillRect(
+        screenX + 10,
+        screenY + 6,
+        4,
+        34
+    );
+
+    // корни
+    ctx.fillStyle = "#8b5a2b";
+    ctx.fillRect(
+        screenX + 8,
+        screenY + 36,
+        16,
+        6
+    );
+}
+
+function drawTreeCrown(x, y) {
+    const screenX = (x - camera.x) * TILE_SIZE;
+    const screenY = (y - camera.y) * TILE_SIZE;
+
+    const baseY = screenY - 28;
+
+    // нижняя тёмная масса
+    ctx.fillStyle = "#2f6b1f";
+    ctx.fillRect(
+        screenX - 6,
+        baseY + 18,
+        44,
+        18
+    );
+
+    // основная густая листва
+    ctx.fillStyle = "#3d8b2f";
+    ctx.fillRect(
+        screenX - 12,
+        baseY + 6,
+        56,
+        20
+    );
+
+    // верх кроны
+    ctx.fillStyle = "#3a9625ff";
+    ctx.fillRect(
+        screenX - 6,
+        baseY - 6,
+        44,
+        16
+    );
+
+    // боковые выступы (раскидистость)
+    ctx.fillStyle = "#3a7f2a";
+    ctx.fillRect(
+        screenX - 18,
+        baseY + 10,
+        16,
+        14
+    );
+    ctx.fillRect(
+        screenX + 34,
+        baseY + 10,
+        16,
+        14
+    );
+}
+
+function drawTreeShadow(x, y) {
+    const screenX = (x - camera.x) * TILE_SIZE;
+    const screenY = (y - camera.y) * TILE_SIZE;
+
+    ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.beginPath();
+    ctx.ellipse(
+        screenX + TILE_SIZE / 2,
+        screenY + TILE_SIZE + 4,
+        16,
+        6,
+        0,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
 }
 
 function drawWinScreen() {
@@ -143,18 +301,48 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     updateCamera();
 
+    // 1. Земля, стены, предметы
     for (let y = camera.y; y < camera.y + VIEW_HEIGHT; y++) {
         for (let x = camera.x; x < camera.x + VIEW_WIDTH; x++) {
             drawTile(x, y, map[y][x]);
         }
     }
 
+
+    // 2. Тени от крон
+    for (let y = camera.y; y < camera.y + VIEW_HEIGHT; y++) {
+        for (let x = camera.x; x < camera.x + VIEW_WIDTH; x++) {
+            if (map[y][x] === 4) {
+                drawTreeShadow(x, y);
+            }
+        }
+    }
+
+    // 2. Стволы деревьев (под игроком)
+    for (let y = camera.y; y < camera.y + VIEW_HEIGHT; y++) {
+        for (let x = camera.x; x < camera.x + VIEW_WIDTH; x++) {
+            if (map[y][x] === 4) {
+                drawTreeTrunk(x, y);
+            }
+        }
+    }
+
+    // 3. Игрок
     drawPlayer();
 
+    // 4. Кроны деревьев (над игроком)
+    for (let y = camera.y; y < camera.y + VIEW_HEIGHT; y++) {
+        for (let x = camera.x; x < camera.x + VIEW_WIDTH; x++) {
+            if (map[y][x] === 4) {
+                drawTreeCrown(x, y);
+            }
+        }
+    }
+
+    // 5. Экран победы
     if (gameWon) {
         drawWinScreen();
     }
-
 }
 
 function checkWin() {
@@ -189,7 +377,7 @@ function collectItem() {
 }
 
 function canMove(x, y) {
-    return map[y][x] !== 2;
+    return map[y][x] !== 2 && map[y][x] !== 4;
 }
 
 function move(dx, dy) {
@@ -228,7 +416,7 @@ restartBtn.addEventListener("click", () => {
 
     player.x = 2;
     player.y = 2;
-    
+
     generateMap();
     draw();
 });
