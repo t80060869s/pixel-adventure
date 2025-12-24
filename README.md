@@ -4,7 +4,7 @@
 
 🌐 **Live demo:** https://t80060869s.github.io/pixel-adventure/
 
-![Image alt](https://github.com/t80060869s/pixel-adventure/raw/main/img/game.jpg)
+![Image alt](https://raw.githubusercontent.com/t80060869s/pixel-adventure/0fd781c96df8f2f3526e4c834e25383361700deb/img/game.jpg)
 
 ## Общее описание
 Игрок управляет персонажем на тайловой карте, исследует уровень и собирает предметы.  
